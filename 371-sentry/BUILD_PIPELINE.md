@@ -43,11 +43,13 @@ python3 utils/prune_binaries.py chromium_src pruning.list
 ```
 
 #### Step 3: Apply Patches (Sentry-Enhanced)
-The patches must be applied in a strict, sequential order defined by `patches/series`. Sentry patches are structured as `extra` patches and should be appended to the bottom of the series so they apply cleanly on top of the ungoogling codebase.
-```bash
-# Uses quilt or internal python scripts to apply all patches in sequence
+The standard ungoogled-chromium pipeline applies patches from the repo-root `patches/` directory (driven by `patches/series`). The Sentry patchset under `371-sentry/patches/` is not picked up automatically (and it currently has no `series` file), so you must explicitly integrate it.
+
+- Option A (reuse upstream tooling): copy `371-sentry/patches/*.patch` into `patches/extra/371-sentry/` and append those paths to `patches/series`.
+- Option B (separate series): add `371-sentry/patches/series` and run `python3 utils/patches.py apply chromium_src 371-sentry/patches`.
+
+Run the standard patch step:
 python3 utils/patches.py apply chromium_src patches
-```
 
 #### Step 4: Domain Substitution
 Replace any remaining phone-home web domains with the non-existent `qjz9zk` top-level domain.
