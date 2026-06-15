@@ -2,6 +2,18 @@
 
 let agentStatus = { online: false, heartbeat: null };
 
+// Secure UUID generator with fallback for non-crypto environments
+function generateUUID() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID().toUpperCase();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16).toUpperCase();
+  });
+}
+
 // Poll Paperclip Agent OS at port 3100 for global heartbeat and status
 async function checkPaperclipHeartbeat() {
   try {
@@ -46,7 +58,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.tabs.onCreated.addListener((tab) => {
   // 'ASE-GEN-' stands for Agentic Security Ecosystem - Generated, representing a
   // dynamically assigned tracking identifier for scoped agent workspace sessions.
-  const generatedProvenanceId = `ASE-GEN-${crypto.randomUUID().toUpperCase()}`;
+  const generatedProvenanceId = `ASE-GEN-${generateUUID()}`;
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
       provenanceId: generatedProvenanceId,
@@ -72,7 +84,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     // Update active tab security posture status
     chrome.storage.local.set({
       [`tab_${tab.id}`]: {
-        provenanceId: `ASE-VORTEX-${crypto.randomUUID().toUpperCase()}`,
+        provenanceId: `ASE-VORTEX-${generateUUID()}`,
         trustLevel: "YELLOW",
         scope: "SANDBOXED",
         created_at: Date.now()

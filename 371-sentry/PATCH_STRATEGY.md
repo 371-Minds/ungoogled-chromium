@@ -13,19 +13,19 @@ The following arguments must be appended to the custom `flags.gn` file of the bu
 
 ```gn
 # Disable standard Chromium features that run counter to sovereign containment
-enable_gcm = false                          # Disable Google Cloud Messaging
-enable_safe_browsing = false                 # Disable Google's phone-home Safe Browsing
-enable_hangout_services_extension = false   # Disable built-in Hangout dependencies
-enable_speech_service = false               # Disable Google-based offline/online speech recognition
-enable_service_discovery = false            # Disable network broadcast/multicast services by default
-google_api_key = "no"                       # Avoid using default Google API keys
-google_default_client_id = "no"
-google_default_client_secret = "no"
+enable_gcm = false                        # Disable Google Cloud Messaging
+enable_safe_browsing = false              # Disable Google's phone-home Safe Browsing
+enable_hangout_services_extension = false # Disable built-in Hangout dependencies
+enable_speech_service = false             # Disable Google-based offline/online speech recognition
+enable_service_discovery = false          # Disable network broadcast/multicast services by default
+google_api_key = "no"                     # Avoid using default Google API keys
+google_default_client_id = "no"           # Disable default Google API keys
+google_default_client_secret = "no"       # Disable default Google API keys
 
 # Harden compilation flags
-is_official_build = true                    # Enable optimizations and strict code path validations
-is_debug = false                            # Strip symbols and debug hooks for production Sentry builds
-symbol_level = 0                            # Exclude bloated debugging symbols to speed up build
+is_official_build = true                  # Enable optimizations and strict code path validations
+is_debug = false                          # Strip symbols and debug hooks for production Sentry builds
+symbol_level = 0                          # Exclude bloated debugging symbols to speed up build
 ```
 
 ---
