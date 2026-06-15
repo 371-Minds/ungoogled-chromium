@@ -129,9 +129,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: () => {
+        let html = document.documentElement.outerHTML;
+        if (html.length > 50000) {
+          html = html.substring(0, 50000) + '...[truncated]';
+        }
         return {
           url: window.location.href,
-          html: document.documentElement.outerHTML,
+          html: html,
           title: document.title,
           isIframe: window !== window.top
         };
