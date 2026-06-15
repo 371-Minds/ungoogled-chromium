@@ -130,7 +130,7 @@ function addLogEntry(text, type = "normal") {
   logList.scrollTop = logList.scrollHeight;
 }
 
-const TRUSTED_DOMAINS = ["localhost:8004", ".internal"];
+const TRUSTED_DOMAINS = ["localhost:8004", "371.internal"];
 
 // Simulate outbound traffic security evaluations to keep UI immersive
 const demoHostnames = ["api.github.com", "google.com", "analytics.tracker.net", "identity.371.internal", "localhost:8004"];
@@ -142,7 +142,7 @@ const pathologies = [
 
 setInterval(() => {
   const host = demoHostnames[Math.floor(Math.random() * demoHostnames.length)];
-  if (TRUSTED_DOMAINS.some(domain => host === domain || host.endsWith(domain))) return; // Skip security evaluation for trusted local services
+  if (TRUSTED_DOMAINS.some(domain => host === domain || host.endsWith("." + domain))) return; // Skip security evaluation for trusted local services
   
   const assessment = pathologies[Math.floor(Math.random() * pathologies.length)];
   if (assessment.verdict === "APPROVE") {
