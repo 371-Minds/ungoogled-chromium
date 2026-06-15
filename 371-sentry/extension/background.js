@@ -66,6 +66,7 @@ chrome.tabs.onCreated.addListener((tab) => {
   // 'ASE-GEN-' stands for Agentic Security Ecosystem - Generated, representing a
   // dynamically assigned tracking identifier for scoped agent workspace sessions.
   const generatedProvenanceId = `ASE-GEN-${generateUUID()}`;
+  
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
       provenanceId: generatedProvenanceId,
@@ -74,6 +75,34 @@ chrome.tabs.onCreated.addListener((tab) => {
       created_at: Date.now()
     }
   });
+
+  // Prompt user/Paperclip to define session boundaries
+  if (tab.id && tab.url && !tab.url.startsWith("chrome://")) {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        const scope = prompt("Define session boundaries for this tab (READ_ONLY, READ_WRITE, SANDBOXED):", "READ_ONLY");
+        if (scope) {
+          chrome.runtime.sendMessage({ type: "SET_TAB_SCOPE", scope });
+        }
+      }
+    }).catch(err => console.log("Could not inject prompt script into new tab:", err));
+  }
+});
+
+// Listen for scope updates from injected scripts
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.type === "SET_TAB_SCOPE" && sender.tab) {
+    const tabId = sender.tab.id;
+    chrome.storage.local.get([`tab_${tabId}`], (result) => {
+      const data = result[`tab_${tabId}`];
+      if (data) {
+        data.scope = message.scope;
+        if (message.scope === "SANDBOXED") data.trustLevel = "YELLOW";
+        chrome.storage.local.set({ [`tab_${tabId}`]: data });
+      }
+    });
+  }
 });
 
 // Clean up tab storage when tab is closed

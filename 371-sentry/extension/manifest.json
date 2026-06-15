@@ -10,7 +10,8 @@
     "activeTab",
     "storage",
     "contextMenus",
-    "alarms"
+    "alarms",
+    "scripting"
   ],
   "host_permissions": [
     "http://localhost:3100/*",
