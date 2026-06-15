@@ -44,10 +44,12 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Watch tabs to inject and track Agent Provenance ID
 chrome.tabs.onCreated.addListener((tab) => {
-  const provenanceId = `ASE-GEN-${crypto.randomUUID().toUpperCase()}`;
+  // 'ASE-GEN-' stands for Agentic Security Ecosystem - Generated, representing a
+  // dynamically assigned tracking identifier for scoped agent workspace sessions.
+  const generatedProvenanceId = `ASE-GEN-${crypto.randomUUID().toUpperCase()}`;
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
-      provenanceId,
+      provenanceId: generatedProvenanceId,
       trustLevel: "GREEN",
       scope: "READ_ONLY",
       created_at: Date.now()
