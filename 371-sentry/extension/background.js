@@ -125,18 +125,52 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 // Handle Context Menu click for Vortex Sandboxing
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "send-to-vortex" && tab) {
-    // Redirect current page to the local Vortex Engine Mock/Synthetic Sandbox
-    const vortexUrl = `http://localhost:3001/v1/vortex/sandbox?target=${encodeURIComponent(tab.url)}`;
-    chrome.tabs.update(tab.id, { url: vortexUrl });
-    
-    // Update active tab security posture status
-    chrome.storage.local.set({
-      [`tab_${tab.id}`]: {
-        provenanceId: `ASE-VORTEX-${generateUUID()}`,
-        trustLevel: "YELLOW",
-        scope: "SANDBOXED",
-        created_at: Date.now()
+    // 1. Gather DOM and frame elements via scripting
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id, allFrames: true },
+      func: () => {
+        return {
+          url: window.location.href,
+          html: document.documentElement.outerHTML,
+          title: document.title,
+          isIframe: window !== window.top
+        };
       }
+    }).then(async (results) => {
+      if (!chrome.runtime.lastError && results) {
+        try {
+          await fetch('http://localhost:3001/v1/vortex/ingest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target: tab.url,
+              frames: results.map(r => r.result),
+              timestamp: Date.now()
+            })
+          });
+        } catch (e) {
+          console.error("Vortex ingest failed", e);
+        }
+      }
+
+      // Redirect current page to the local Vortex Engine Mock/Synthetic Sandbox
+      const vortexUrl = `http://localhost:3001/v1/vortex/sandbox?target=${encodeURIComponent(tab.url)}`;
+      chrome.tabs.update(tab.id, { url: vortexUrl });
+      
+      // Update active tab security posture status
+      chrome.storage.local.set({
+        [`tab_${tab.id}`]: {
+          provenanceId: `ASE-VORTEX-${generateUUID()}`,
+          trustLevel: "YELLOW",
+          scope: "SANDBOXED",
+          created_at: Date.now()
+        }
+      });
+    }).catch(err => {
+      console.error("Failed to execute script for Vortex", err);
+      // Fallback redirect
+      const vortexUrl = `http://localhost:3001/v1/vortex/sandbox?target=${encodeURIComponent(tab.url)}`;
+      chrome.tabs.update(tab.id, { url: vortexUrl });
     });
   }
 });

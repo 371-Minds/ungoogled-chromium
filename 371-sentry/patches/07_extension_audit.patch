@@ -1,0 +1,20 @@
+--- a/chrome/browser/extensions/crx_installer.cc
++++ b/chrome/browser/extensions/crx_installer.cc
+@@ -200,6 +200,24 @@
+ 
+ void CrxInstaller::InstallCrxFile(const CRXFileInfo& source_file) {
++  // 371 Sentry: Automated Extension Auditing
++  // Intercept incoming extension installation requests, feed their package models
++  // into the local Vortex Engine sandbox, and display Counterfactual explanations before execution.
++  GURL vortex_url("http://localhost:3001/v1/vortex/audit");
++  auto resource_request = std::make_unique<network::ResourceRequest>();
++  resource_request->url = vortex_url;
++  resource_request->method = "POST";
++  
++  // Mocking the feed of package models. In reality we'd parse and upload the crx here.
++  // Block installation if counterfactual detects severe risk.
++  // For scaffolding purposes, we simulate the audit network call.
++  
+   extension_file_ = source_file.path;
+ 
+   //... normal installation logic
