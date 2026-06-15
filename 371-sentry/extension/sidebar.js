@@ -82,11 +82,25 @@ async function updateActiveTabTrustInfo() {
     const provEl = document.getElementById("tab-prov-id");
     const scopeEl = document.getElementById("tab-scope");
     const healthEl = document.getElementById("tab-trust-health");
+    
+    const swarmMonEl = document.getElementById("swarm-monitor");
+    const swarmIsoEl = document.getElementById("swarm-isolate");
+    const swarmTrcEl = document.getElementById("swarm-trace");
 
     if (data) {
       provEl.innerText = data.provenanceId || "ASE-SEC-NONE";
       scopeEl.innerText = data.scope || "READ_ONLY";
       healthEl.innerText = data.trustLevel || "GREEN";
+
+      if (data.swarm) {
+        swarmMonEl.innerText = data.swarm.monitor || "OFFLINE";
+        swarmIsoEl.innerText = data.swarm.isolate || "OFFLINE";
+        swarmTrcEl.innerText = data.swarm.trace || "OFFLINE";
+      } else {
+        swarmMonEl.innerText = "OFFLINE";
+        swarmIsoEl.innerText = "OFFLINE";
+        swarmTrcEl.innerText = "OFFLINE";
+      }
 
       if (data.trustLevel === "GREEN") {
         healthEl.style.color = "var(--accent-color)";
@@ -101,6 +115,11 @@ async function updateActiveTabTrustInfo() {
       scopeEl.innerText = "READ_ONLY";
       healthEl.innerText = "UNASSESSED";
       healthEl.style.color = "var(--text-muted)";
+      if(swarmMonEl) {
+        swarmMonEl.innerText = "OFFLINE";
+        swarmIsoEl.innerText = "OFFLINE";
+        swarmTrcEl.innerText = "OFFLINE";
+      }
     }
   });
 }
@@ -138,8 +157,8 @@ slider.addEventListener("input", (e) => {
   addLogEntry(`Sensitivity level altered to ${modeName}`, val === 3 ? "flag" : "normal");
 });
 
-// Helper to write to threat logs
-function addLogEntry(text, type = "normal") {
+// Helper to write to threat logs and generate Cryptographic Security Logs
+async function addLogEntry(text, type = "normal") {
   const logList = document.getElementById("log-list");
   const entry = document.createElement("div");
   entry.className = `log-entry ${type === "normal" ? "" : type}`;
@@ -149,6 +168,23 @@ function addLogEntry(text, type = "normal") {
   
   logList.appendChild(entry);
   logList.scrollTop = logList.scrollHeight;
+
+  // Cryptographic Security Logs to local blockchain ledger
+  try {
+    const encoder = new TextEncoder();
+    const payload = JSON.stringify({ text, type, timestamp: Date.now() });
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(payload));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    fetch("http://localhost:3002/v1/ledger/append", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload, signature })
+    }).catch(() => { /* ledger offline */ });
+  } catch (err) {
+    console.error("Crypto hashing failed", err);
+  }
 }
 
 const TRUSTED_DOMAINS = ["localhost:8004", "371.internal"];

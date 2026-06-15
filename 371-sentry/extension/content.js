@@ -75,6 +75,9 @@ const observer = new MutationObserver((mutations) => {
         if (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE) {
           queueTextForScan(node.textContent || "");
         }
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          enforceConsciousnessAuth(node);
+        }
       });
     }
   }
@@ -82,14 +85,60 @@ const observer = new MutationObserver((mutations) => {
   scheduleScan();
 });
 
+// Consciousness Authentication Form Interceptor
+function enforceConsciousnessAuth(rootNode) {
+  if (!rootNode.querySelectorAll) return;
+  const forms = rootNode.querySelectorAll("form");
+  forms.forEach(form => {
+    if (form.dataset.consciousnessEnforced) return;
+    
+    const passwordInputs = form.querySelectorAll("input[type='password']");
+    if (passwordInputs.length > 0) {
+      form.dataset.consciousnessEnforced = "true";
+      
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        // Retrieve ephemeral consciousness token (mock liveness detection)
+        const token = `371-AUTH-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+        
+        // Strip out existing passwords
+        passwordInputs.forEach(input => {
+          input.value = ""; 
+          input.disabled = true;
+          input.placeholder = "[Consciousness Token Secured]";
+        });
+        
+        // Inject token into the form
+        let tokenInput = form.querySelector("input[name='consciousness_token']");
+        if (!tokenInput) {
+          tokenInput = document.createElement("input");
+          tokenInput.type = "hidden";
+          tokenInput.name = "consciousness_token";
+          form.appendChild(tokenInput);
+        }
+        tokenInput.value = token;
+        
+        // Log action
+        console.log("Sovereign Sentry: Consciousness Authentication enforced. Standard credentials replaced with ephemeral token.");
+        
+        // Resubmit bypassing listeners
+        form.submit();
+      });
+    }
+  });
+}
+
 if (document.body) {
   observer.observe(document.body, { childList: true, subtree: true });
   queueTextForScan(document.body.textContent || "");
+  enforceConsciousnessAuth(document.body);
   scheduleScan();
 } else {
   document.addEventListener("DOMContentLoaded", () => {
     observer.observe(document.body, { childList: true, subtree: true });
     queueTextForScan(document.body.textContent || "");
+    enforceConsciousnessAuth(document.body);
     scheduleScan();
   });
 }

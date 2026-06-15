@@ -67,11 +67,19 @@ chrome.tabs.onCreated.addListener((tab) => {
   // dynamically assigned tracking identifier for scoped agent workspace sessions.
   const generatedProvenanceId = `ASE-GEN-${generateUUID()}`;
   
+// Distributed Sentry Swarm: assign multi-agent IDs
+  const swarmIds = {
+    monitor: `SENTRY-MON-${generateUUID()}`,
+    isolate: `SENTRY-ISO-${generateUUID()}`,
+    trace: `SENTRY-TRC-${generateUUID()}`
+  };
+
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
       provenanceId: generatedProvenanceId,
       trustLevel: "GREEN",
       scope: "READ_ONLY",
+      swarm: swarmIds,
       created_at: Date.now()
     }
   });
@@ -171,6 +179,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           provenanceId: `ASE-VORTEX-${generateUUID()}`,
           trustLevel: "YELLOW",
           scope: "SANDBOXED",
+          swarm: {
+            monitor: `SENTRY-MON-${generateUUID()}`,
+            isolate: `SENTRY-ISO-${generateUUID()}`,
+            trace: `SENTRY-TRC-${generateUUID()}`
+          },
           created_at: Date.now()
         }
       });
