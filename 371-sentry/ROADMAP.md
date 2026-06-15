@@ -11,16 +11,16 @@ This document outlines the phased development roadmap to evolve **371 Sentry** f
 - [x] **Direct NTP / Homepage Integration**: Set default New Tab Page fallback directly to `http://localhost:8004` (GitMind task board) so the browser opens directly into the 371 operating center.
 - [x] **371: Protocol Handler Scaffolding**: Registered the native C++ redirection handling for `371:gitmind` -> `:8004`, `371:design` -> `:3717`, etc.
 - [x] **Sovereign Extension Scaffolding**: Structured the background worker, sidebar, and tab tracking extension for UI integrations.
-- [ ] **Hardened local SSL preloads**: Add `localhost` and `127.0.0.1` to the HSTS preload list (`net/http/transport_security_state_static.json`) so internal port bindings are forced through strict secure tunnels.
+- [x] **Hardened local SSL preloads**: Add `localhost`, `127.0.0.1` and Tailscale to the HSTS preload list (`net/http/transport_security_state_static.json`) so internal port bindings are forced through strict secure tunnels.
 
 ---
 
 ## Phase 2: Autonomous Security Nexus (v0.2 - v0.4)
 *Goal: Integrate active outbound request evaluation and tab provenance monitoring.*
 
-- [ ] **Tab Provenance ID Mapping**: Implement strict Provenance ID session assignments. When an agent tab is opened, prompt user/Paperclip to define session boundaries (`READ_ONLY`, `READ_WRITE`, `SANDBOXED`).
-- [ ] **Sentinel Outbound Traffic Interception**: Implement the C++ `URLLoaderThrottle` class connecting with the 371 Router at `localhost:3001` to filter all outbound cross-origin network payloads.
-- [ ] **Live Verdict Rendering**: Connect the extension sidebar to display live Sentinel threat verdicts (`APPROVE` vs `FLAG_HUMAN_REVIEW` with clinical pathology notes).
+- [x] **Tab Provenance ID Mapping**: Implement strict Provenance ID session assignments. When an agent tab is opened, prompt user/Paperclip to define session boundaries (`READ_ONLY`, `READ_WRITE`, `SANDBOXED`).
+- [ ] **Sentinel Outbound Traffic Interception** *(scaffolded)*: `URLLoaderThrottle` class added; deferral and verdict-based resume are wired but the 371 Router integration is not yet complete end-to-end.
+- [ ] **Live Verdict Rendering** *(scaffolded)*: Sidebar polls the Router endpoint and logs verdicts; deduplication and bounded DOM growth are in place but full clinical pathology display is pending.
 
 ---
 

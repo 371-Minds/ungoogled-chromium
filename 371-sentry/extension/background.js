@@ -66,6 +66,7 @@ chrome.tabs.onCreated.addListener((tab) => {
   // 'ASE-GEN-' stands for Agentic Security Ecosystem - Generated, representing a
   // dynamically assigned tracking identifier for scoped agent workspace sessions.
   const generatedProvenanceId = `ASE-GEN-${generateUUID()}`;
+  
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
       provenanceId: generatedProvenanceId,
@@ -74,6 +75,46 @@ chrome.tabs.onCreated.addListener((tab) => {
       created_at: Date.now()
     }
   });
+
+  // Prompt user/Paperclip to define session boundaries.
+  // Use pendingUrl first because tab.url is often empty when onCreated fires.
+  const tabUrl = tab.pendingUrl || tab.url || "";
+  if (tab.id && !tabUrl.startsWith("chrome://")) {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        const scope = prompt("Define session boundaries for this tab (READ_ONLY, READ_WRITE, SANDBOXED):", "READ_ONLY");
+        if (scope) {
+          chrome.runtime.sendMessage({ type: "SET_TAB_SCOPE", scope });
+        }
+      }
+    }).catch(err => console.log("Could not inject prompt script into new tab:", err));
+  }
+});
+
+// Listen for scope updates from injected scripts
+const VALID_SCOPES = new Set(["READ_ONLY", "READ_WRITE", "SANDBOXED"]);
+
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.type === "SET_TAB_SCOPE" && sender.tab) {
+    const tabId = sender.tab.id;
+    // Validate and normalize the scope value before persisting.
+    const normalized = typeof message.scope === "string"
+      ? message.scope.trim().toUpperCase()
+      : "";
+    if (!VALID_SCOPES.has(normalized)) {
+      console.warn(`SET_TAB_SCOPE: ignoring unrecognized scope "${message.scope}"`);
+      return;
+    }
+    chrome.storage.local.get([`tab_${tabId}`], (result) => {
+      const data = result[`tab_${tabId}`];
+      if (data) {
+        data.scope = normalized;
+        if (normalized === "SANDBOXED") data.trustLevel = "YELLOW";
+        chrome.storage.local.set({ [`tab_${tabId}`]: data });
+      }
+    });
+  }
 });
 
 // Clean up tab storage when tab is closed

@@ -153,22 +153,41 @@ function addLogEntry(text, type = "normal") {
 
 const TRUSTED_DOMAINS = ["localhost:8004", "371.internal"];
 
-// Simulate outbound traffic security evaluations to keep UI immersive
-const demoHostnames = ["api.github.com", "google.com", "analytics.tracker.net", "identity.371.internal", "localhost:8004"];
-const pathologies = [
-  { verdict: "APPROVE", note: "Routine API handshake verified." },
-  { verdict: "FLAG_HUMAN_REVIEW", pathology: "Machiavellian Obfuscation", note: "Suspected Base64 payload in outbound request body." },
-  { verdict: "FLAG_HUMAN_REVIEW", pathology: "Delusions of Grandeur", note: "Read-only agent requesting un-scoped session writes." }
-];
+// Track the ID/timestamp of the last verdict we rendered to avoid re-logging
+// previously seen entries on every poll cycle.
+let lastSeenVerdictTimestamp = 0;
 
-setInterval(() => {
-  const host = demoHostnames[Math.floor(Math.random() * demoHostnames.length)];
-  if (TRUSTED_DOMAINS.some(domain => host === domain || host.endsWith("." + domain))) return; // Skip security evaluation for trusted local services
-  
-  const assessment = pathologies[Math.floor(Math.random() * pathologies.length)];
-  if (assessment.verdict === "APPROVE") {
-    addLogEntry(`Outbound request to ${host} evaluated: APPROVED.`, "normal");
-  } else {
-    addLogEntry(`ALERT: ${host} flagged for ${assessment.pathology}! Verdict: FLAG_HUMAN_REVIEW.`, "block");
+// Connect the extension sidebar to display live Sentinel threat verdicts
+// from the 371 Router at localhost:3001
+
+async function fetchLiveVerdicts() {
+  try {
+    const response = await fetch("https://localhost:3001/api/verdicts");
+    if (response.ok) {
+      const verdicts = await response.json();
+      // Only process verdicts newer than the last one we already displayed.
+      const newVerdicts = verdicts.filter(
+        (v) => (v.timestamp || 0) > lastSeenVerdictTimestamp
+      );
+      newVerdicts.forEach(assessment => {
+        const host = assessment.host || "unknown-host";
+        if (assessment.verdict === "APPROVE") {
+          addLogEntry(`Outbound request to ${host} evaluated: APPROVED. Note: ${assessment.note}`, "normal");
+        } else if (assessment.verdict === "FLAG_HUMAN_REVIEW") {
+          addLogEntry(`ALERT: ${host} flagged for ${assessment.pathology || "Suspicious Activity"}! Verdict: FLAG_HUMAN_REVIEW. Note: ${assessment.note}`, "block");
+        }
+      });
+      // Advance the watermark so we never replay these entries.
+      if (newVerdicts.length > 0) {
+        lastSeenVerdictTimestamp = Math.max(
+          ...newVerdicts.map((v) => v.timestamp || 0)
+        );
+      }
+    }
+  } catch (err) {
+    // Silent fail if router is not reachable
   }
-}, 15000);
+}
+
+// Poll for live verdicts every 5 seconds
+setInterval(fetchLiveVerdicts, 5000);

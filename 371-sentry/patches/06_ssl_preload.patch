@@ -1,0 +1,26 @@
+--- a/net/http/transport_security_state_static.json
++++ b/net/http/transport_security_state_static.json
+@@ -20,6 +20,23 @@
+ //      is a hash of the SubjectPublicKeyInfo structure of the certificate.
+ //
+ {
++  "entries": [
++    {
++      "name": "localhost",
++      "include_subdomains": true,
++      "mode": "force-https"
++    },
++    {
++      "name": "127.0.0.1",
++      "include_subdomains": false,
++      "mode": "force-https"
++    },
++    {
++      "name": "ts.net",
++      "include_subdomains": true,
++      "mode": "force-https"
++    }
++  ],
+   "pinsets": [
+     {
+       "name": "test",
