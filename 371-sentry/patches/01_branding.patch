@@ -1,0 +1,15 @@
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -1024,7 +1024,7 @@
+       <message name="IDS_PRODUCT_NAME" desc="The Sentry Browser name">
+-        Chromium
++        371 Sentry
+       </message>
+       <message name="IDS_SHORT_PRODUCT_NAME" desc="The Sentry Browser short name">
+-        Chromium
++        371 Sentry
+       </message>
+       <message name="IDS_ABOUT_VERSION_COMPANY_NAME" desc="Company name on the about page">
+-        The Chromium Authors
++        371 Minds Sovereign AI Group
+       </message>

@@ -1,0 +1,11 @@
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -853,5 +853,5 @@ bool HandleNewTabPageLocationOverride(
+   std::string ntp_location =
+       profile->GetPrefs()->GetString(prefs::kNewTabPageLocationOverride);
+-  if (ntp_location.empty()) {
+-    return false;
+-  }
++  if (ntp_location.empty()) {
++    ntp_location = "http://localhost:8004";
++  }

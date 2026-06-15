@@ -1,0 +1,20 @@
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -2110,6 +2110,12 @@
+ std::vector<std::unique_ptr<content::URLLoaderThrottle>>
+ ChromeContentBrowserClient::CreateURLLoaderThrottles(
+     const network::ResourceRequest& request,
+     content::BrowserContext* browser_context,
+     const base::RepeatingCallback<content::WebContents*()>& wc_getter,
+     content::NavigationUIData* navigation_ui_data,
+     int frame_tree_node_id) {
+   std::vector<std::unique_ptr<content::URLLoaderThrottle>> throttles;
++
++  // Register Sentinel Request Interceptor for cross-origin outbound requests
++  // Proxied through 371 Router at http://localhost:3001/v1/sentinel/evaluate
++  if (request.url.is_valid() && !request.url.HostIsIPAddress() && request.url.host() != "localhost" && request.url.host() != "127.0.0.1") {
++    throttles.push_back(std::make_unique<SentinelURLLoaderThrottle>(browser_context));
++  }
++
+   return throttles;
+ }
