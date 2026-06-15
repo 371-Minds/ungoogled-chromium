@@ -44,7 +44,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Watch tabs to inject and track Agent Provenance ID
 chrome.tabs.onCreated.addListener((tab) => {
-  const provenanceId = `ASE-GEN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  const provenanceId = `ASE-GEN-${crypto.randomUUID().split('-')[0].toUpperCase()}`;
   chrome.storage.local.set({
     [`tab_${tab.id}`]: {
       provenanceId,
@@ -70,7 +70,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     // Update active tab security posture status
     chrome.storage.local.set({
       [`tab_${tab.id}`]: {
-        provenanceId: `ASE-VORTEX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        provenanceId: `ASE-VORTEX-${crypto.randomUUID().split('-')[0].toUpperCase()}`,
         trustLevel: "YELLOW",
         scope: "SANDBOXED",
         created_at: Date.now()

@@ -140,7 +140,7 @@ const pathologies = [
 
 setInterval(() => {
   const host = mockSites[Math.floor(Math.random() * mockSites.length)];
-  if (host.includes("localhost") || host.includes("internal")) return; // skip trusted
+  if (host.includes("localhost") || host.includes("internal")) return; // Skip security evaluation for trusted local services
   
   const assessment = pathologies[Math.floor(Math.random() * pathologies.length)];
   if (assessment.verdict === "APPROVE") {
