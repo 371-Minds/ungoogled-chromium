@@ -55,6 +55,7 @@ function queueTextForScan(text) {
   const remaining = MAX_PENDING_TEXT_CHARS - pendingTextChars;
   if (remaining <= 0) return;
   const boundedText = text.slice(0, remaining);
+  if (!boundedText) return;
   pendingTexts.push(boundedText);
   pendingTextChars += boundedText.length;
 }
