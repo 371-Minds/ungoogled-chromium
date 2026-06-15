@@ -100,7 +100,9 @@ function enforceConsciousnessAuth(rootNode) {
         e.preventDefault();
         
         // Retrieve ephemeral consciousness token (mock liveness detection)
-        const token = `371-AUTH-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+        const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+          .map(b => b.toString(16).padStart(2, '0')).join('');
+        const token = `371-AUTH-${randomHex}-${Date.now()}`;
         
         // Strip out existing passwords
         passwordInputs.forEach(input => {
