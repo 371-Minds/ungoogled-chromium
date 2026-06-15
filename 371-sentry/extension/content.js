@@ -12,6 +12,8 @@ const ADVERSARIAL_PATTERNS = [
 const loggedThreats = new Set();
 let debounceTimer = null;
 let pendingTexts = [];
+let pendingTextChars = 0;
+const MAX_PENDING_TEXT_CHARS = 50000;
 
 function checkTextForAdversarialPatterns(text) {
   for (const pattern of ADVERSARIAL_PATTERNS) {
@@ -41,9 +43,26 @@ function logToGitMind(threat) {
 function processPendingTexts() {
   const combinedText = pendingTexts.join(" ");
   pendingTexts = [];
+  pendingTextChars = 0;
   const threat = checkTextForAdversarialPatterns(combinedText);
   if (threat) {
     logToGitMind(threat);
+  }
+}
+
+function queueTextForScan(text) {
+  if (!text) return;
+  const remaining = MAX_PENDING_TEXT_CHARS - pendingTextChars;
+  if (remaining <= 0) return;
+  const boundedText = text.slice(0, remaining);
+  pendingTexts.push(boundedText);
+  pendingTextChars += boundedText.length;
+}
+
+function scheduleScan() {
+  if (pendingTexts.length > 0) {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(processPendingTexts, 1000);
   }
 }
 
@@ -53,25 +72,23 @@ const observer = new MutationObserver((mutations) => {
     if (mutation.type === 'childList') {
       mutation.addedNodes.forEach(node => {
         if (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE) {
-          const text = node.textContent || node.innerText || "";
-          if (text) {
-            pendingTexts.push(text);
-          }
+          queueTextForScan(node.textContent || "");
         }
       });
     }
   }
-  
-  if (pendingTexts.length > 0) {
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(processPendingTexts, 1000);
-  }
+
+  scheduleScan();
 });
 
 if (document.body) {
   observer.observe(document.body, { childList: true, subtree: true });
+  queueTextForScan(document.body.textContent || "");
+  scheduleScan();
 } else {
   document.addEventListener("DOMContentLoaded", () => {
     observer.observe(document.body, { childList: true, subtree: true });
+    queueTextForScan(document.body.textContent || "");
+    scheduleScan();
   });
 }

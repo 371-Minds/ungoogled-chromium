@@ -28,7 +28,7 @@ This document outlines the phased development roadmap to evolve **371 Sentry** f
 *Goal: Seamless tab isolation and counters against adversarial prompt execution.*
 
 - [x] **Interactive Sandbox Redirection**: Complete the "Send to Vortex" flow, redirecting tab DOM states, frame elements, and mock APIs directly to the El Marina synthetic environment.
-- [x] **Automated Extension Auditing**: Intercept all incoming extension installation requests, feed their package models into the local Vortex Engine sandbox, and display Counterfactual explanations before execution.
+- [ ] **Automated Extension Auditing** *(scaffolded)*: Intercept hook is scaffolded, but the Vortex audit request and install-gating flow are not yet wired end-to-end.
 - [x] **Adversarial Simulation Feed**: Monitor tabs for prompt injections and priv-confusion attempts, logging them back to GitMind.
 
 ---

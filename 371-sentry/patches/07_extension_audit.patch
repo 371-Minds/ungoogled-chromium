@@ -6,14 +6,10 @@
 +  // 371 Sentry: Automated Extension Auditing
 +  // Intercept incoming extension installation requests, feed their package models
 +  // into the local Vortex Engine sandbox, and display Counterfactual explanations before execution.
-+  GURL vortex_url("http://localhost:3001/v1/vortex/audit");
-+  auto resource_request = std::make_unique<network::ResourceRequest>();
-+  resource_request->url = vortex_url;
-+  resource_request->method = "POST";
-+  
-+  // Mocking the feed of package models. In reality we'd parse and upload the crx here.
-+  // Block installation if counterfactual detects severe risk.
-+  // For scaffolding purposes, we simulate the audit network call.
++  // TODO(371-sentry): Wire a SimpleURLLoader POST audit request to the local
++  // Vortex endpoint and gate installation on audit verdict.
++  // Keeping this as comment-only scaffolding avoids introducing unused code
++  // in patched Chromium sources before networking is fully implemented.
 +  
    extension_file_ = source_file.path;
  
