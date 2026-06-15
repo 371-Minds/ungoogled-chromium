@@ -153,22 +153,27 @@ function addLogEntry(text, type = "normal") {
 
 const TRUSTED_DOMAINS = ["localhost:8004", "371.internal"];
 
-// Simulate outbound traffic security evaluations to keep UI immersive
-const demoHostnames = ["api.github.com", "google.com", "analytics.tracker.net", "identity.371.internal", "localhost:8004"];
-const pathologies = [
-  { verdict: "APPROVE", note: "Routine API handshake verified." },
-  { verdict: "FLAG_HUMAN_REVIEW", pathology: "Machiavellian Obfuscation", note: "Suspected Base64 payload in outbound request body." },
-  { verdict: "FLAG_HUMAN_REVIEW", pathology: "Delusions of Grandeur", note: "Read-only agent requesting un-scoped session writes." }
-];
+// Connect the extension sidebar to display live Sentinel threat verdicts
+// from the 371 Router at localhost:3001
 
-setInterval(() => {
-  const host = demoHostnames[Math.floor(Math.random() * demoHostnames.length)];
-  if (TRUSTED_DOMAINS.some(domain => host === domain || host.endsWith("." + domain))) return; // Skip security evaluation for trusted local services
-  
-  const assessment = pathologies[Math.floor(Math.random() * pathologies.length)];
-  if (assessment.verdict === "APPROVE") {
-    addLogEntry(`Outbound request to ${host} evaluated: APPROVED.`, "normal");
-  } else {
-    addLogEntry(`ALERT: ${host} flagged for ${assessment.pathology}! Verdict: FLAG_HUMAN_REVIEW.`, "block");
+async function fetchLiveVerdicts() {
+  try {
+    const response = await fetch("http://localhost:3001/api/verdicts");
+    if (response.ok) {
+      const verdicts = await response.json();
+      verdicts.forEach(assessment => {
+        const host = assessment.host || "unknown-host";
+        if (assessment.verdict === "APPROVE") {
+          addLogEntry(`Outbound request to ${host} evaluated: APPROVED. Note: ${assessment.note}`, "normal");
+        } else if (assessment.verdict === "FLAG_HUMAN_REVIEW") {
+          addLogEntry(`ALERT: ${host} flagged for ${assessment.pathology || "Suspicious Activity"}! Verdict: FLAG_HUMAN_REVIEW. Note: ${assessment.note}`, "block");
+        }
+      });
+    }
+  } catch (err) {
+    // Silent fail if router is not reachable
   }
-}, 15000);
+}
+
+// Poll for live verdicts every 5 seconds
+setInterval(fetchLiveVerdicts, 5000);

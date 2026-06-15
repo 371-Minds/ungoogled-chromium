@@ -19,8 +19,8 @@ This document outlines the phased development roadmap to evolve **371 Sentry** f
 *Goal: Integrate active outbound request evaluation and tab provenance monitoring.*
 
 - [x] **Tab Provenance ID Mapping**: Implement strict Provenance ID session assignments. When an agent tab is opened, prompt user/Paperclip to define session boundaries (`READ_ONLY`, `READ_WRITE`, `SANDBOXED`).
-- [ ] **Sentinel Outbound Traffic Interception**: Implement the C++ `URLLoaderThrottle` class connecting with the 371 Router at `localhost:3001` to filter all outbound cross-origin network payloads.
-- [ ] **Live Verdict Rendering**: Connect the extension sidebar to display live Sentinel threat verdicts (`APPROVE` vs `FLAG_HUMAN_REVIEW` with clinical pathology notes).
+- [x] **Sentinel Outbound Traffic Interception**: Implement the C++ `URLLoaderThrottle` class connecting with the 371 Router at `localhost:3001` to filter all outbound cross-origin network payloads.
+- [x] **Live Verdict Rendering**: Connect the extension sidebar to display live Sentinel threat verdicts (`APPROVE` vs `FLAG_HUMAN_REVIEW` with clinical pathology notes).
 
 ---
 

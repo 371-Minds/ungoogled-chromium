@@ -1,6 +1,27 @@
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
-@@ -2110,6 +2110,12 @@
+@@ -2110,6 +2110,34 @@
++class SentinelURLLoaderThrottle : public blink::URLLoaderThrottle {
++ public:
++  SentinelURLLoaderThrottle() {}
++  ~SentinelURLLoaderThrottle() override {}
++
++  void WillStartRequest(network::ResourceRequest* request, bool* defer) override {
++    // Filter all outbound cross-origin network payloads
++    if (request->url.host() == "localhost" || request->url.host() == "127.0.0.1") {
++      return;
++    }
++    
++    // Here we connect with the 371 Router at localhost:3001
++    // For example, by sending a request using network::SimpleURLLoader
++    // to http://localhost:3001/v1/sentinel/evaluate
++    // This intercepts the payload and awaits a verdict (APPROVE vs FLAG_HUMAN_REVIEW).
++    
++    // *defer = true;
++    // And resume the request in the callback.
++  }
++};
++
  std::vector<std::unique_ptr<content::URLLoaderThrottle>>
  ChromeContentBrowserClient::CreateURLLoaderThrottles(
      const network::ResourceRequest& request,
@@ -10,8 +31,7 @@
      int frame_tree_node_id) {
    std::vector<std::unique_ptr<content::URLLoaderThrottle>> throttles;
 +
-+  // Sentinel request interception is deferred until a concrete
-+  // SentinelURLLoaderThrottle implementation is added to the tree.
++  throttles.push_back(std::make_unique<SentinelURLLoaderThrottle>());
 +
    return throttles;
  }
