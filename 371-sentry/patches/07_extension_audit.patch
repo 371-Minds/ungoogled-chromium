@@ -1,0 +1,16 @@
+--- a/chrome/browser/extensions/crx_installer.cc
++++ b/chrome/browser/extensions/crx_installer.cc
+@@ -200,6 +200,24 @@
+ 
+ void CrxInstaller::InstallCrxFile(const CRXFileInfo& source_file) {
++  // 371 Sentry: Automated Extension Auditing
++  // Intercept incoming extension installation requests, feed their package models
++  // into the local Vortex Engine sandbox, and display Counterfactual explanations before execution.
++  // TODO(371-sentry): Wire a SimpleURLLoader POST audit request to the local
++  // Vortex endpoint and gate installation on audit verdict.
++  // Keeping this as comment-only scaffolding avoids introducing unused code
++  // in patched Chromium sources before networking is fully implemented.
++  
+   extension_file_ = source_file.path;
+ 
+   //... normal installation logic
