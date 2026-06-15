@@ -1,6 +1,6 @@
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
-@@ -1200,6 +1200,20 @@
+@@ -1200,12 +1200,37 @@
  bool ChromeContentBrowserClient::HandleExternalProtocol(
      const GURL& url,
      content::WebContents::Getter web_contents_getter,
@@ -38,5 +38,3 @@
 +      return true;
 +    }
 +  }
-+  return false;
-+}
