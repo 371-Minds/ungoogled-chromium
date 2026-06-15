@@ -43,16 +43,29 @@ chrome.runtime.onMessage.addListener((message) => {
       label.innerText = "Paperclip Offline";
       label.style.color = "var(--danger-color)";
       
-      details.innerHTML = `
-        <div class="meta-item" style="color: var(--text-muted);">
-          <span>Identity (ASN):</span>
-          <span class="meta-value" style="color: var(--danger-color);">UNCONNECTED</span>
-        </div>
-        <div class="meta-item" style="color: var(--text-muted);">
-          <span>Active Workspace:</span>
-          <span class="meta-value" style="color: var(--danger-color);">N/A</span>
-        </div>
-      `;
+      details.replaceChildren();
+
+      const makeItem = (labelText, valueText, valueColor) => {
+        const item = document.createElement("div");
+        item.className = "meta-item";
+        item.style.color = "var(--text-muted)";
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = labelText;
+
+        const valueEl = document.createElement("span");
+        valueEl.className = "meta-value";
+        valueEl.textContent = valueText;
+        valueEl.style.color = valueColor;
+
+        item.append(labelEl, valueEl);
+        return item;
+      };
+
+      details.append(
+        makeItem("Identity (ASN):", "UNCONNECTED", "var(--danger-color)"),
+        makeItem("Active Workspace:", "N/A", "var(--danger-color)")
+      );
     }
   }
 });
