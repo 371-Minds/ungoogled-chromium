@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>371 Sentry Browser — Sovereign Control Board</title>
+  <style>
+    :root {
+      --bg-primary: #04080f;
+      --bg-secondary: #0d1b2a;
+      --accent-color: #00ff66;
+      --accent-hover: #39ff14;
+      --danger-color: #ff3333;
+      --warning-color: #ffaa00;
+      --text-main: #e0e1dd;
+      --text-muted: #8d99ae;
+      --border-color: #1b263b;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Courier New', Courier, monospace;
+      padding: 15px;
+      margin: 0;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+
+    header {
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      color: var(--accent-color);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    h2 {
+      font-size: 1rem;
+      color: var(--accent-color);
+      margin: 20px 0 10px 0;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .pulse {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .pulse-online {
+      background-color: var(--accent-color);
+      box-shadow: 0 0 8px var(--accent-color);
+      animation: beat 1.5s infinite alternate;
+    }
+
+    .pulse-offline {
+      background-color: var(--danger-color);
+      box-shadow: 0 0 8px var(--danger-color);
+    }
+
+    @keyframes beat {
+      from { transform: scale(1); opacity: 0.6; }
+      to { transform: scale(1.25); opacity: 1; }
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #112240;
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 8px;
+      text-align: center;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.75rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-transform: uppercase;
+    }
+
+    .btn:hover {
+      background: var(--accent-color);
+      color: var(--bg-primary);
+      box-shadow: 0 0 10px var(--accent-color);
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .slider {
+      width: 100%;
+      accent-color: var(--accent-color);
+    }
+
+    .log-container {
+      background-color: #020408;
+      border: 1px solid var(--border-color);
+      height: 120px;
+      overflow-y: auto;
+      padding: 8px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .log-entry {
+      border-left: 2px solid var(--accent-color);
+      padding-left: 6px;
+    }
+
+    .log-entry.flag {
+      border-left-color: var(--warning-color);
+      color: var(--warning-color);
+    }
+
+    .log-entry.block {
+      border-left-color: var(--danger-color);
+      color: var(--danger-color);
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+    }
+
+    .meta-value {
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>
+      <span>371 Sentry</span>
+      <span style="font-size: 0.7rem; opacity: 0.6;">v0.1-dev</span>
+    </h1>
+  </header>
+
+  <!-- Live OS Connection Card -->
+  <div class="card">
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+      <span id="agent-pulse" class="pulse pulse-offline"></span>
+      <strong id="agent-status-label" style="text-transform: uppercase;">Paperclip Offline</strong>
+    </div>
+    <div id="agent-details">
+      <div class="meta-item">
+        <span>Identity (ASN):</span>
+        <span class="meta-value">UNCONNECTED</span>
+      </div>
+      <div class="meta-item">
+        <span>Active Workspace:</span>
+        <span class="meta-value">N/A</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Tab Posture Card -->
+  <h2>Active Tab Trust</h2>
+  <div class="card">
+    <div class="meta-item">
+      <span>Provenance ID:</span>
+      <span id="tab-prov-id" class="meta-value">ASE-SEC-NONE</span>
+    </div>
+    <div class="meta-item">
+      <span>Access Level:</span>
+      <span id="tab-scope" class="meta-value">UNKNOWN</span>
+    </div>
+    <div class="meta-item">
+      <span>Trust Health:</span>
+      <span id="tab-trust-health" class="meta-value" style="color: var(--text-muted);">UNASSESSED</span>
+    </div>
+  </div>
+
+  <!-- Sentry Service Pinned Pointers -->
+  <h2>Local Sovereign Services</h2>
+  <div class="service-grid">
+    <a href="371:gitmind" target="_blank" rel="noopener noreferrer" class="btn">GitMind</a>
+    <a href="371:design" target="_blank" rel="noopener noreferrer" class="btn">Open Design</a>
+    <a href="371:mercato" target="_blank" rel="noopener noreferrer" class="btn">Mercato</a>
+    <a href="371:memoria" target="_blank" rel="noopener noreferrer" class="btn">Memoria</a>
+    <a href="371:pyrunner" target="_blank" rel="noopener noreferrer" class="btn">PyRunner</a>
+    <a href="371:moducp" target="_blank" rel="noopener noreferrer" class="btn">ModuCP</a>
+    <a href="371:rootlift" target="_blank" rel="noopener noreferrer" class="btn">Rootlift</a>
+    <a href="371:router" target="_blank" rel="noopener noreferrer" class="btn">371 Router</a>
+
+  <!-- Sentinel Control Module -->
+  <h2>Sentinel Sensitivity</h2>
+  <div class="card slider-container">
+    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+      <span>Sensitivity Mode:</span>
+      <strong id="sensitivity-value" style="color: var(--accent-color);">MEDIUM</strong>
+    </div>
+    <input type="range" min="1" max="3" value="2" class="slider" id="sensitivity-slider">
+  </div>
+
+  <!-- Threat Evaluation Log -->
+  <h2>Sentinel Threat Log</h2>
+  <div class="log-container" id="log-list">
+    <div class="log-entry">Sentry Browser Shield online.</div>
+    <div class="log-entry">Awaiting outbound traffic stream...</div>
+  </div>
+
+  <footer>
+    371 Minds Operating System Client Surface
+  </footer>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>

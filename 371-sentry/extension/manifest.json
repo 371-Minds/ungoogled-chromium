@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "371 Sentry Sovereign Dashboard",
+  "version": "1.0.0",
+  "description": "Sovereign agentic UI layer connecting the 371 Sentry Browser to local services, Paperclip Agent OS, and the Autonomous Security Nexus.",
+  "permissions": [
+    "sidePanel",
+    "declarativeNetRequest",
+    "tabs",
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://localhost:3100/*",
+    "http://localhost:3001/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "action": {
+    "default_title": "Toggle Sentry Panel"
+  }
+}

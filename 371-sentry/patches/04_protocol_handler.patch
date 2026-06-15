@@ -1,0 +1,40 @@
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -1200,12 +1200,37 @@
+ bool ChromeContentBrowserClient::HandleExternalProtocol(
+     const GURL& url,
+     content::WebContents::Getter web_contents_getter,
+     int frame_tree_node_id,
+     navigation_interceptor::NavigationThrottle::Delegate* delegate,
+     bool is_parent_stable,
+     bool is_main_frame,
+     ui::PageTransition transition,
+     bool has_user_gesture,
+     const std::optional<url::Origin>& initiating_origin,
+     content::RenderFrameHost* initiator_document,
+     mojo::PendingReceiver<network::mojom::URLLoaderFactory>* out_factory) {
++  if (url.SchemeIs("371")) {
++    std::string path = url.path();
++    GURL redirect_url;
++    if (path == "gitmind" || path == "8004") redirect_url = GURL("http://localhost:8004");
++    else if (path == "design" || path == "3717") redirect_url = GURL("http://localhost:3717");
++    else if (path == "mercato" || path == "4096") redirect_url = GURL("http://localhost:4096");
++    else if (path == "bizbuilder" || path == "8003") redirect_url = GURL("http://localhost:8003");
++    else if (path == "storyforge" || path == "8006") redirect_url = GURL("http://localhost:8006");
++    else if (path == "memoria" || path == "9001") redirect_url = GURL("http://localhost:9001");
++    else if (path == "router" || path == "3001") redirect_url = GURL("http://localhost:3001");
++    else if (path == "rootlift" || path == "8090") redirect_url = GURL("http://localhost:8090");
++    else if (path == "pyrunner" || path == "8005") redirect_url = GURL("http://localhost:8005");
++    else if (path == "moducp" || path == "8088") redirect_url = GURL("http://localhost:8088");
++    else if (path.starts_with('?')) {
++      std::string query = net::EscapeQueryParamValue(path.substr(1), true);
++      redirect_url = GURL("http://localhost:9001/api/search?q=" + query);
++    }
++    else redirect_url = GURL("http://localhost:3100"); // Default to Paperclip
++    
++    content::WebContents* web_contents = web_contents_getter.Run();
++    if (web_contents) {
++      web_contents->GetController().LoadURL(redirect_url, content::Referrer(), ui::PAGE_TRANSITION_TYPED, std::string());
++      return true;
++    }
++  }
