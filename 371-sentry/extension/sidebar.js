@@ -16,20 +16,28 @@ chrome.runtime.onMessage.addListener((message) => {
       const identity = message.data.heartbeat ? message.data.heartbeat.identity : "Sovereign-A1";
       const workspace = message.data.heartbeat ? message.data.heartbeat.workspace : "Global-Core";
 
-      details.innerHTML = `
-        <div class="meta-item">
-          <span>Identity (ASN):</span>
-          <span class="meta-value">${identity}</span>
-        </div>
-        <div class="meta-item">
-          <span>Active Workspace:</span>
-          <span class="meta-value">${workspace}</span>
-        </div>
-        <div class="meta-item">
-          <span>Last Heartbeat Tick:</span>
-          <span class="meta-value">${tick}</span>
-        </div>
-      `;
+      details.replaceChildren();
+
+      const makeItem = (labelText, valueText) => {
+        const item = document.createElement("div");
+        item.className = "meta-item";
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = labelText;
+
+        const valueEl = document.createElement("span");
+        valueEl.className = "meta-value";
+        valueEl.textContent = valueText;
+
+        item.append(labelEl, valueEl);
+        return item;
+      };
+
+      details.append(
+        makeItem("Identity (ASN):", identity),
+        makeItem("Active Workspace:", workspace),
+        makeItem("Last Heartbeat Tick:", tick)
+      );
     } else {
       pulse.className = "pulse pulse-offline";
       label.innerText = "Paperclip Offline";
