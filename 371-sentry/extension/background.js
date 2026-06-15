@@ -2,7 +2,6 @@
 
 let agentStatus = { online: false, heartbeat: null };
 const HEARTBEAT_ALARM_NAME = "paperclip-heartbeat";
-const MAX_HTML_CAPTURE_LENGTH = 50000;
 
 // Secure UUID generator with fallback for non-crypto environments
 function generateUUID() {
@@ -131,6 +130,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: () => {
+        const MAX_HTML_CAPTURE_LENGTH = 50000;
         let html = document.documentElement.outerHTML;
         if (html.length > MAX_HTML_CAPTURE_LENGTH) {
           html = html.substring(0, MAX_HTML_CAPTURE_LENGTH) + '...[truncated]';

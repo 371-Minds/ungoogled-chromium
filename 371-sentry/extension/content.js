@@ -52,10 +52,10 @@ function processPendingTexts() {
 
 function queueTextForScan(text) {
   if (!text) return;
+  if (pendingTextChars >= MAX_PENDING_TEXT_CHARS) return;
   const remaining = MAX_PENDING_TEXT_CHARS - pendingTextChars;
-  if (remaining <= 0) return;
   const boundedText = text.slice(0, remaining);
-  if (!boundedText) return;
+  if (boundedText.length === 0) return;
   pendingTexts.push(boundedText);
   pendingTextChars += boundedText.length;
 }
