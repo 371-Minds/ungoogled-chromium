@@ -153,15 +153,23 @@ function addLogEntry(text, type = "normal") {
 
 const TRUSTED_DOMAINS = ["localhost:8004", "371.internal"];
 
+// Track the ID/timestamp of the last verdict we rendered to avoid re-logging
+// previously seen entries on every poll cycle.
+let lastSeenVerdictTimestamp = 0;
+
 // Connect the extension sidebar to display live Sentinel threat verdicts
 // from the 371 Router at localhost:3001
 
 async function fetchLiveVerdicts() {
   try {
-    const response = await fetch("http://localhost:3001/api/verdicts");
+    const response = await fetch("https://localhost:3001/api/verdicts");
     if (response.ok) {
       const verdicts = await response.json();
-      verdicts.forEach(assessment => {
+      // Only process verdicts newer than the last one we already displayed.
+      const newVerdicts = verdicts.filter(
+        (v) => (v.timestamp || 0) > lastSeenVerdictTimestamp
+      );
+      newVerdicts.forEach(assessment => {
         const host = assessment.host || "unknown-host";
         if (assessment.verdict === "APPROVE") {
           addLogEntry(`Outbound request to ${host} evaluated: APPROVED. Note: ${assessment.note}`, "normal");
@@ -169,6 +177,12 @@ async function fetchLiveVerdicts() {
           addLogEntry(`ALERT: ${host} flagged for ${assessment.pathology || "Suspicious Activity"}! Verdict: FLAG_HUMAN_REVIEW. Note: ${assessment.note}`, "block");
         }
       });
+      // Advance the watermark so we never replay these entries.
+      if (newVerdicts.length > 0) {
+        lastSeenVerdictTimestamp = Math.max(
+          ...newVerdicts.map((v) => v.timestamp || 0)
+        );
+      }
     }
   } catch (err) {
     // Silent fail if router is not reachable

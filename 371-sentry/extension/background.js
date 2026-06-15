@@ -76,8 +76,10 @@ chrome.tabs.onCreated.addListener((tab) => {
     }
   });
 
-  // Prompt user/Paperclip to define session boundaries
-  if (tab.id && tab.url && !tab.url.startsWith("chrome://")) {
+  // Prompt user/Paperclip to define session boundaries.
+  // Use pendingUrl first because tab.url is often empty when onCreated fires.
+  const tabUrl = tab.pendingUrl || tab.url || "";
+  if (tab.id && !tabUrl.startsWith("chrome://")) {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
@@ -91,14 +93,24 @@ chrome.tabs.onCreated.addListener((tab) => {
 });
 
 // Listen for scope updates from injected scripts
+const VALID_SCOPES = new Set(["READ_ONLY", "READ_WRITE", "SANDBOXED"]);
+
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message.type === "SET_TAB_SCOPE" && sender.tab) {
     const tabId = sender.tab.id;
+    // Validate and normalize the scope value before persisting.
+    const normalized = typeof message.scope === "string"
+      ? message.scope.trim().toUpperCase()
+      : "";
+    if (!VALID_SCOPES.has(normalized)) {
+      console.warn(`SET_TAB_SCOPE: ignoring unrecognized scope "${message.scope}"`);
+      return;
+    }
     chrome.storage.local.get([`tab_${tabId}`], (result) => {
       const data = result[`tab_${tabId}`];
       if (data) {
-        data.scope = message.scope;
-        if (message.scope === "SANDBOXED") data.trustLevel = "YELLOW";
+        data.scope = normalized;
+        if (normalized === "SANDBOXED") data.trustLevel = "YELLOW";
         chrome.storage.local.set({ [`tab_${tabId}`]: data });
       }
     });

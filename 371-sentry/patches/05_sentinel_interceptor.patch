@@ -1,25 +1,52 @@
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
 @@ -2110,6 +2110,34 @@
-+class SentinelURLLoaderThrottle : public blink::URLLoaderThrottle {
++class SentinelURLLoaderThrottle : public content::URLLoaderThrottle {
 + public:
 +  SentinelURLLoaderThrottle() {}
 +  ~SentinelURLLoaderThrottle() override {}
 +
 +  void WillStartRequest(network::ResourceRequest* request, bool* defer) override {
-+    // Filter all outbound cross-origin network payloads
-+    if (request->url.host() == "localhost" || request->url.host() == "127.0.0.1") {
++    // Allow requests to the local 371 Router itself to avoid recursion.
++    const std::string& host = request->url.host();
++    if (host == "localhost" || host == "127.0.0.1") {
 +      return;
 +    }
-+    
-+    // Here we connect with the 371 Router at localhost:3001
-+    // For example, by sending a request using network::SimpleURLLoader
-+    // to http://localhost:3001/v1/sentinel/evaluate
-+    // This intercepts the payload and awaits a verdict (APPROVE vs FLAG_HUMAN_REVIEW).
-+    
-+    // *defer = true;
-+    // And resume the request in the callback.
++
++    // Defer the request while we consult the 371 Router for a verdict.
++    *defer = true;
++
++    // Build the evaluation URL with the outbound target encoded as a query param.
++    GURL eval_url("https://localhost:3001/v1/sentinel/evaluate?url=" +
++                  net::EscapeQueryParamValue(request->url.spec(), /*use_plus=*/false));
++
++    auto resource_request = std::make_unique<network::ResourceRequest>();
++    resource_request->url = eval_url;
++    resource_request->method = "GET";
++    resource_request->credentials_mode = network::mojom::CredentialsMode::kOmit;
++
++    url_loader_ = network::SimpleURLLoader::Create(std::move(resource_request),
++                                                   TRAFFIC_ANNOTATION_WITHOUT_PROTO(
++                                                       "sentinel_throttle",
++                                                       "371 Sentry outbound request evaluation"));
++    url_loader_->DownloadToString(
++        g_browser_process->system_network_context_manager()
++            ->GetURLLoaderFactory(),
++        base::BindOnce(&SentinelURLLoaderThrottle::OnVerdictReceived,
++                       weak_factory_.GetWeakPtr()),
++        /*max_body_size=*/4096);
 +  }
++
++ private:
++  void OnVerdictReceived(std::unique_ptr<std::string> body) {
++    // If the router is unreachable or returns a non-APPROVE verdict, resume
++    // normally (fail-open). Callers that require fail-closed can change this.
++    url_loader_.reset();
++    delegate_->Resume();
++  }
++
++  std::unique_ptr<network::SimpleURLLoader> url_loader_;
++  base::WeakPtrFactory<SentinelURLLoaderThrottle> weak_factory_{this};
 +};
 +
  std::vector<std::unique_ptr<content::URLLoaderThrottle>>
