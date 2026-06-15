@@ -12,7 +12,7 @@
 +
 +  // Register Sentinel Request Interceptor for cross-origin outbound requests
 +  // Proxied through 371 Router at http://localhost:3001/v1/sentinel/evaluate
-+  if (request.url.is_valid() && !request.url.HostIsIPAddress() && request.url.host() != "localhost" && request.url.host() != "127.0.0.1") {
++  if (request.url.is_valid() && !net::IsLocalhost(request.url)) {
 +    throttles.push_back(std::make_unique<SentinelURLLoaderThrottle>(browser_context));
 +  }
 +

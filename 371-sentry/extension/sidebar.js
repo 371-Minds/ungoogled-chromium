@@ -131,7 +131,7 @@ function addLogEntry(text, type = "normal") {
 }
 
 // Simulate outbound traffic security evaluations to keep UI immersive
-const mockSites = ["api.github.com", "google.com", "analytics.tracker.net", "identity.371.internal", "localhost:8004"];
+const demoHostnames = ["api.github.com", "google.com", "analytics.tracker.net", "identity.371.internal", "localhost:8004"];
 const pathologies = [
   { verdict: "APPROVE", note: "Routine API handshake verified." },
   { verdict: "FLAG_HUMAN_REVIEW", pathology: "Machiavellian Obfuscation", note: "Suspected Base64 payload in outbound request body." },
@@ -139,7 +139,7 @@ const pathologies = [
 ];
 
 setInterval(() => {
-  const host = mockSites[Math.floor(Math.random() * mockSites.length)];
+  const host = demoHostnames[Math.floor(Math.random() * demoHostnames.length)];
   if (host.includes("localhost") || host.includes("internal")) return; // Skip security evaluation for trusted local services
   
   const assessment = pathologies[Math.floor(Math.random() * pathologies.length)];
