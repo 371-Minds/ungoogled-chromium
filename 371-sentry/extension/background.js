@@ -1,6 +1,7 @@
 // 371 Sentry — Sovereign UI Background Worker
 
 let agentStatus = { online: false, heartbeat: null };
+const HEARTBEAT_ALARM_NAME = "paperclip-heartbeat";
 
 // Secure UUID generator with fallback for non-crypto environments
 function generateUUID() {
@@ -37,14 +38,20 @@ async function checkPaperclipHeartbeat() {
   });
 }
 
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === HEARTBEAT_ALARM_NAME) {
+    checkPaperclipHeartbeat();
+  }
+});
+
 // Poller scheduler
 chrome.runtime.onInstalled.addListener(() => {
   // Set up side panel action click behavior (opens side panel automatically)
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
-  // Poll immediately and start interval
+  // Poll immediately and schedule heartbeat alarm
   checkPaperclipHeartbeat();
-  setInterval(checkPaperclipHeartbeat, 5000);
+  chrome.alarms.create(HEARTBEAT_ALARM_NAME, { periodInMinutes: 0.5 });
 
   // Create context menu for Vortex Sandboxing
   chrome.contextMenus.create({
